@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 
+from argparse import ArgumentParser
 from collections import namedtuple
 import mutagen
 from mutagen.id3 import ID3, TXXX
@@ -9,6 +10,29 @@ import sys
 
 
 GainTuple = namedtuple("GainTuple", "track album")
+
+
+def setup_arg_parser():
+    arg_parser = ArgumentParser(
+            description="Find files with missing ReplayGain tags."
+        )
+
+    # Options
+    arg_parser.add_argument(
+            "-e",
+            "--empty-only",
+            help="Only print those files which have no ReplayGain tags at all.",
+            action="store_true"
+        )
+
+    # Arguments
+    arg_parser.add_argument(
+            "file",
+            help="File to process.",
+            nargs="+",
+        )
+
+    return arg_parser
 
 
 def get_gains(mediafile):
@@ -44,12 +68,8 @@ def get_gains(mediafile):
 
 
 
-if len(sys.argv) < 2:
-    print >> sys.stderr, "Usage:"
-    print >> sys.stderr, " %s file..." % sys.argv[0]
-    sys.exit(1)
-
-for mediapath in sys.argv[1:]:
+args = setup_arg_parser().parse_args()
+for mediapath in args.file:
     mediafile = mutagen.File(mediapath)
     if mediafile is None:
         print >> sys.stderr, "%s: Don't know how to parse this file type." % mediapath
@@ -72,5 +92,5 @@ for mediapath in sys.argv[1:]:
     if not gains.album:
         msg += " No ALBUM gain."
 
-    if len(msg):
+    if len(msg) and (not args.empty_only or not gains.track and not gains.album):
         print "%s:%s" % (mediapath, msg)
