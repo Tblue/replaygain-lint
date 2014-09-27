@@ -52,17 +52,17 @@ if len(sys.argv) < 2:
 for mediapath in sys.argv[1:]:
     mediafile = mutagen.File(mediapath)
     if mediafile is None:
-        print "%s: Don't know how to parse this file type." % mediapath
+        print >> sys.stderr, "%s: Don't know how to parse this file type." % mediapath
         continue
 
     gains = get_gains(mediafile)
     if gains is None:
-        print "========= WARNING ==========="
-        print "%s: Don't know how to get ReplayGain information." % mediapath
-        print "CLASS NAME: %s" % mediafile.__class__.__name__
-        print "TAG DUMP:"
-        print mediafile.tags.pprint()
-        print "============================="
+        print >> sys.stderr, "========= WARNING ==========="
+        print >> sys.stderr, "%s: Don't know how to get ReplayGain information." % mediapath
+        print >> sys.stderr, "CLASS NAME: %s" % mediafile.__class__.__name__
+        print >> sys.stderr, "TAG DUMP:"
+        print >> sys.stderr, mediafile.tags.pprint()
+        print >> sys.stderr, "============================="
 
         continue
 
