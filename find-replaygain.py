@@ -50,7 +50,13 @@ for mediapath in sys.argv[1:]:
 
     gains = get_gains(mediafile)
     if gains is None:
+        print "========= WARNING ==========="
         print "%s: Don't know how to get ReplayGain information." % mediapath
+        print "CLASS NAME: %s" % mediafile.__class__.__name__
+        print "TAG DUMP:"
+        print mediafile.tags.pprint()
+        print "============================="
+
         continue
 
     msg = ""
