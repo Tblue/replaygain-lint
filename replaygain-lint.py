@@ -47,7 +47,7 @@ def setup_arg_parser():
     arg_parser.add_argument(
             "-a",
             "--ape-warning",
-            help="Print a warning if a file has ReplayGain information in obsolete APEv2 tags.",
+            help="Print a warning if an MP3 file has ReplayGain information in obsolete APEv2 tags.",
             action="store_true"
         )
     arg_parser.add_argument(
@@ -59,8 +59,8 @@ def setup_arg_parser():
     arg_parser.add_argument(
             "-u",
             "--missing-undo",
-            help="Print a warning if an MP3 file has no MP3Gain undo tags, i. e. if "
-                "it has NOT been modified directly for compatibility with old players "
+            help="Print a warning if an MP3/AAC file has no MP3Gain/AACGain undo tags, i. e. if "
+                "it probably has NOT been modified directly for compatibility with old players "
                 "which are not aware of ReplayGain tags.",
             action="store_true"
         )
@@ -182,7 +182,7 @@ for mediapath in args.file:
 
     missing_undo = args.missing_undo and gains.missing_mp3gain_undo
     if missing_undo:
-        msg += " NO UNDO INFORMATION FOUND (frames probably not modified by MP3Gain)."
+        msg += " NO UNDO INFORMATION FOUND (frames probably not modified by MP3Gain/AACGain)."
 
     ape_gains_found = args.ape_warning and has_ape_gains(mediafile)
     if ape_gains_found:
