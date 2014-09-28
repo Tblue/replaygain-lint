@@ -137,10 +137,16 @@ def get_gains(mediafile):
     return GainTuple(track_gain, album_gain, missing_mp3gain_undo)
 
 
-def has_ape_gains(filename):
+def has_ape_gains(mediafile):
+    # I only know about MP3 files with APE ReplayGain tags.
+    # Since other formats use APE tags for "real" tagging,
+    # ignore them.
+    if not isinstance(mediafile, mutagen.mp3.MP3):
+        return False
+
     try:
         ape_tags = APEv2()
-        ape_tags.load(filename)
+        ape_tags.load(mediafile.filename)
     except APENoHeaderError:
         return False
 
@@ -178,7 +184,7 @@ for mediapath in args.file:
     if missing_undo:
         msg += " NO UNDO INFORMATION FOUND (frames probably not modified by MP3Gain)."
 
-    ape_gains_found = args.ape_warning and has_ape_gains(mediapath)
+    ape_gains_found = args.ape_warning and has_ape_gains(mediafile)
     if ape_gains_found:
         msg += " Has obsolete APEv2 ReplayGain tag(s)."
 
