@@ -80,7 +80,7 @@ def get_gains(mediafile):
         album_gain = try_shift(
                 mediafile.tags,
                 lambda val: float(val.split(None, 1)[0]),
-                "REPLAYGAIN_ALBU;_GAIN"
+                "REPLAYGAIN_ALBUM_GAIN"
             )
     elif isinstance(mediafile.tags, ID3):
         missing_mp3gain_undo = not len(mediafile.tags.getall("TXXX:MP3GAIN_UNDO"))
