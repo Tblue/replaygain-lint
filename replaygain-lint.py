@@ -68,11 +68,11 @@ def get_gains(mediafile):
     if isinstance(mediafile, OggVorbis):
         track_gain = try_shift(
                 mediafile.tags["REPLAYGAIN_TRACK_GAIN"],
-                lambda val: float(val.split(maxsplit=1)[0])
+                lambda val: float(val.split(None, 1)[0])
             )
         album_gain = try_shift(
                 mediafile.tags["REPLAYGAIN_ALBUM_GAIN"],
-                lambda val: float(val.split(maxsplit=1)[0])
+                lambda val: float(val.split(None, 1)[0])
             )
     elif isinstance(mediafile.tags, ID3):
         has_undo   = len(mediafile.tags.getall("TXXX:MP3GAIN_UNDO")) > 0
