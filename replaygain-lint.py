@@ -51,6 +51,13 @@ def setup_arg_parser():
 
 
 def get_gains(mediafile):
+    def try_shift(xs, callback):
+        if len(xs):
+            return callback(xs[0])
+
+        return None
+
+
     if mediafile.tags is None:
         return GainTuple(None, None, False)
 
@@ -59,24 +66,33 @@ def get_gains(mediafile):
     has_undo   = False
 
     if isinstance(mediafile, OggVorbis):
-        try:
-            track_gain = float(mediafile.tags["REPLAYGAIN_TRACK_GAIN"][0].split()[0])
-            album_gain = float(mediafile.tags["REPLAYGAIN_ALBUM_GAIN"][0].split()[0])
-        except (KeyError, IndexError):
-            pass
+        track_gain = try_shift(
+                mediafile.tags["REPLAYGAIN_TRACK_GAIN"],
+                lambda val: float(val.split(maxsplit=1)[0])
+            )
+        album_gain = try_shift(
+                mediafile.tags["REPLAYGAIN_ALBUM_GAIN"],
+                lambda val: float(val.split(maxsplit=1)[0])
+            )
     elif isinstance(mediafile.tags, ID3):
-        try:
-            has_undo   = len(mediafile.tags.getall("TXXX:MP3GAIN_UNDO")) > 0
-            track_gain = mediafile.tags.getall("RVA2:track")[0].gain
-            album_gain = mediafile.tags.getall("RVA2:album")[0].gain
-        except IndexError:
-            pass
+        has_undo   = len(mediafile.tags.getall("TXXX:MP3GAIN_UNDO")) > 0
+        track_gain = try_shift(
+                mediafile.tags.getall("RVA2:track"),
+                lambda val: val.gain
+            )
+        album_gain = try_shift(
+                mediafile.tags.getall("RVA2:album"),
+                lambda val: val.gain
+            )
     elif isinstance(mediafile.tags, MP4Tags):
-        try:
-            track_gain = float(mediafile.tags["----:com.apple.iTunes:replaygain_track_gain"][0])
-            album_gain = float(mediafile.tags["----:com.apple.iTunes:replaygain_album_gain"][0])
-        except (KeyError, IndexError):
-            pass
+        track_gain = try_shift(
+                mediafile.tags["----:com.apple.iTunes:replaygain_track_gain"],
+                lambda val: float(val)
+            )
+        album_gain = try_shift(
+                mediafile.tags["----:com.apple.iTunes:replaygain_album_gain"],
+                lambda val: float(val)
+            )
     else:
         # Unhandled tag type.
         return None
