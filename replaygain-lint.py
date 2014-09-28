@@ -10,7 +10,7 @@ from mutagen.oggvorbis import OggVorbis
 import sys
 
 
-GainTuple = namedtuple("GainTuple", "track album")
+GainTuple = namedtuple("GainTuple", "track album has_undo")
 
 
 def setup_arg_parser():
@@ -31,6 +31,14 @@ def setup_arg_parser():
             help="Only print those files which have no ReplayGain tags at all.",
             action="store_true"
         )
+    arg_parser.add_argument(
+            "-u",
+            "--missing-undo",
+            help="Print a warning if a MP3 file has no MP3Gain undo tags, i. e. if "
+                "it has NOT been modified directly for compatibility with old players "
+                "which are not aware of ReplayGain tags.",
+            action="store_true"
+        )
 
     # Arguments
     arg_parser.add_argument(
@@ -44,10 +52,11 @@ def setup_arg_parser():
 
 def get_gains(mediafile):
     if mediafile.tags is None:
-        return GainTuple(None, None)
+        return GainTuple(None, None, False)
 
     track_gain = None
     album_gain = None
+    has_undo   = False
 
     if isinstance(mediafile, OggVorbis):
         try:
@@ -57,6 +66,7 @@ def get_gains(mediafile):
             pass
     elif isinstance(mediafile.tags, ID3):
         try:
+            has_undo   = len(mediafile.tags.getall("TXXX:MP3GAIN_UNDO")) > 0
             track_gain = mediafile.tags.getall("RVA2:track")[0].gain
             album_gain = mediafile.tags.getall("RVA2:album")[0].gain
         except IndexError:
@@ -71,7 +81,7 @@ def get_gains(mediafile):
         # Unhandled tag type.
         return None
 
-    return GainTuple(track_gain, album_gain)
+    return GainTuple(track_gain, album_gain, has_undo)
 
 
 def has_ape_gains(filename):
@@ -111,6 +121,10 @@ for mediapath in args.file:
     if gains.album is None:
         msg += " No ALBUM gain."
 
+    missing_undo = args.missing_undo and not gains.has_undo
+    if missing_undo:
+        msg += " NO UNDO INFORMATION FOUND (frames probably not modified by MP3Gain)."
+
     ape_gains_found = args.ape_warning and has_ape_gains(mediapath)
     if ape_gains_found:
         msg += " Has obsolete APEv2 ReplayGain tag(s)."
@@ -122,5 +136,6 @@ for mediapath in args.file:
     # If the user only wants to get a list of files which have no ReplayGain tags at all,
     # then also check if all ReplayGain gain tags are missing and only say something if
     # that is the case.
-    if ape_gains_found or not args.empty_only or gains.track is None and gains.album is None:
+    if ape_gains_found or missing_undo or \
+            not args.empty_only or gains.track is None and gains.album is None:
         print "%s:%s" % (mediapath, msg)
