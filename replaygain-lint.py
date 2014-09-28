@@ -118,6 +118,8 @@ def get_gains(mediafile):
                 lambda val: val.gain
             )
     elif isinstance(mediafile.tags, MP4Tags):
+        missing_mp3gain_undo = \
+                "----:com.apple.iTunes:replaygain_undo" not in mediafile.tags
         track_gain = try_shift(
                 mediafile.tags,
                 lambda val: float(val),
