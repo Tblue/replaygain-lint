@@ -10,7 +10,7 @@ from mutagen.oggvorbis import OggVorbis
 import sys
 
 
-GainTuple = namedtuple("GainTuple", "track album has_undo")
+GainTuple = namedtuple("GainTuple", "track album missing_mp3gain_undo")
 
 
 def setup_arg_parser():
@@ -69,7 +69,7 @@ def get_gains(mediafile):
 
     track_gain = None
     album_gain = None
-    has_undo   = False
+    missing_mp3gain_undo = False
 
     if isinstance(mediafile, OggVorbis):
         track_gain = try_shift(
@@ -83,7 +83,7 @@ def get_gains(mediafile):
                 "REPLAYGAIN_ALBU;_GAIN"
             )
     elif isinstance(mediafile.tags, ID3):
-        has_undo   = len(mediafile.tags.getall("TXXX:MP3GAIN_UNDO")) > 0
+        missing_mp3gain_undo = not len(mediafile.tags.getall("TXXX:MP3GAIN_UNDO"))
         track_gain = try_shift(
                 mediafile.tags.getall("RVA2:track"),
                 lambda val: val.gain
@@ -107,7 +107,7 @@ def get_gains(mediafile):
         # Unhandled tag type.
         return None
 
-    return GainTuple(track_gain, album_gain, has_undo)
+    return GainTuple(track_gain, album_gain, missing_mp3gain_undo)
 
 
 def has_ape_gains(filename):
@@ -147,7 +147,7 @@ for mediapath in args.file:
     if gains.album is None:
         msg += " No ALBUM gain."
 
-    missing_undo = args.missing_undo and not gains.has_undo
+    missing_undo = args.missing_undo and gains.missing_mp3gain_undo
     if missing_undo:
         msg += " NO UNDO INFORMATION FOUND (frames probably not modified by MP3Gain)."
 
