@@ -2,7 +2,7 @@
 #
 # Finds files with missing ReplayGain tags.
 #
-# Copyright (c) 2014, Tilman Blumenbach
+# Copyright (c) 2014, 2016, Tilman Blumenbach
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification,
@@ -25,14 +25,16 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import sys
 from argparse import ArgumentParser
 from collections import namedtuple
+from math import log10
+
 import mutagen
 from mutagen.apev2 import APEv2, APENoHeaderError
 from mutagen.id3 import ID3, TXXX
 from mutagen.mp4 import MP4Tags
 from mutagen.oggvorbis import OggVorbis
-import sys
 
 
 GainTuple = namedtuple("GainTuple", "track album missing_mp3gain_undo")
@@ -179,6 +181,12 @@ for mediapath in args.file:
         msg += " No TRACK gain."
     if gains.album is None:
         msg += " No ALBUM gain."
+
+    if isinstance(mediafile.tags, (ID3, MP4Tags)):
+        if gains.album is not None and abs(gains.album) < log10(32):
+            msg += " Album gain applied."
+        elif gains.track is not None and abs(gains.track) < log10(32):
+            msg += " Track gain applied."
 
     missing_undo = args.missing_undo and gains.missing_mp3gain_undo
     if missing_undo:
