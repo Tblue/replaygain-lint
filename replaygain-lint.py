@@ -35,6 +35,7 @@ from mutagen.apev2 import APEv2, APENoHeaderError
 from mutagen.id3 import ID3, TXXX
 from mutagen.mp4 import MP4Tags
 from mutagen.oggvorbis import OggVorbis
+from mutagen.flac import FLAC
 
 
 GainTuple = namedtuple("GainTuple", "track album missing_mp3gain_undo")
@@ -98,7 +99,7 @@ def get_gains(mediafile):
     album_gain = None
     missing_mp3gain_undo = False
 
-    if isinstance(mediafile, OggVorbis):
+    if isinstance(mediafile, OggVorbis) or isinstance(mediafile, FLAC):
         track_gain = try_shift(
                 mediafile.tags,
                 lambda val: float(val.split(None, 1)[0]),
