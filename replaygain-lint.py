@@ -1,8 +1,8 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #
 # Finds files with missing ReplayGain tags.
 #
-# Copyright (c) 2014, 2016, Tilman Blumenbach
+# Copyright (c) 2014, 2016, 2025, Tilman Blumenbach
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification,
@@ -163,18 +163,20 @@ args = setup_arg_parser().parse_args()
 for mediapath in args.file:
     mediafile = mutagen.File(mediapath)
     if mediafile is None:
-        print >> sys.stderr, "%s: Don't know how to parse this file type." % mediapath
+        print("%s: Don't know how to parse this file type." % mediapath, file=sys.stderr)
         continue
 
     gains = get_gains(mediafile)
     if gains is None:
-        print >> sys.stderr, "========= WARNING ==========="
-        print >> sys.stderr, "%s: Don't know how to get ReplayGain information." % mediapath
-        print >> sys.stderr, "CLASS NAME: %s" % mediafile.__class__.__name__
-        print >> sys.stderr, "TAG DUMP:"
-        print >> sys.stderr, mediafile.tags.pprint()
-        print >> sys.stderr, "============================="
-
+        print(
+            f"========= WARNING ===========\n"
+            f"{mediapath}: Don't know how to get ReplayGain information.\n"
+            f"CLASS NAME: {mediafile.__class__.__name__}\n"
+            f"TAG DUMP:\n"
+            f"{mediafile.tags.pprint()}\n"
+            "=============================\n",
+            file=sys.stderr, end=""
+        )
         continue
 
     msg = ""
@@ -206,4 +208,4 @@ for mediapath in args.file:
     # that is the case.
     if ape_gains_found or missing_undo or \
             not args.empty_only or gains.track is None and gains.album is None:
-        print "%s:%s" % (mediapath, msg)
+        print("%s:%s" % (mediapath, msg))
